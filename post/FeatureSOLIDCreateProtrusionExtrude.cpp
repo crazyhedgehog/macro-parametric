@@ -28,7 +28,7 @@ void FeatureSOLIDCreateProtrusionExtrude::GetInfo()
 	_endDepth = spFeature->EndDepth;
 	_endCondition = (EndType)(spFeature->EndCondition);
 	_flip = spFeature->IsFlip?true:false;	// VARIANT_BOOL (for TransCAd) -> bool Cast
-
+	
 	_gcvt(_startDepth, MAX_DIGITS, _sD);
 	_gcvt(_endDepth, MAX_DIGITS, _eD);
 	
@@ -49,7 +49,10 @@ void FeatureSOLIDCreateProtrusionExtrude::ToUG()
 	int n_counts;
 	
 	UF_MODL_create_list(&templist);
-	UF_MODL_create_extruded2(GetFeatureProfileSketch()->_ugObjectsList,"0.0",limit, point, (double*)&direction, UF_NULLSIGN, &templist );
+	if(GetPart()->index)
+		UF_MODL_create_extruded2(GetFeatureProfileSketch()->_ugObjectsList,"0.0",limit, point, (double*)&direction, UF_POSITIVE, &templist );
+	else
+		UF_MODL_create_extruded2(GetFeatureProfileSketch()->_ugObjectsList,"0.0",limit, point, (double*)&direction, UF_NULLSIGN, &templist );
 	UF_MODL_ask_list_count(templist,&n_counts);
 
 	if(n_counts>=2){
@@ -75,7 +78,9 @@ void FeatureSOLIDCreateProtrusionExtrude::ToUG()
 		
 		_ugFeatList=newlist;
 	
-	}else _ugFeatList=templist;
+	}else 
+		
+		_ugFeatList=templist;
 	
 	// DEBUG : 차후 수정
 	cout << "  FeatureSOLIDCreateProtrusionExtrude " << GetFeatureName();

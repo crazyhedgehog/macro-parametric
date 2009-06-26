@@ -45,7 +45,7 @@ void FeatureSOLIDCreatePatternRect::ToUG(void)
 	uf_list_p_t feat_list;
 	
 
-	if(_featurename[0]!='C'){
+	/*if(_featurename[0]!='C'){
 		UF_MODL_ask_list_item(pFeature->_ugFeatList,0,&feature);
 		int 	zero = 0, one = 1,  two = 2, resp, ii, n_ref_sets;
 	
@@ -73,7 +73,7 @@ void FeatureSOLIDCreatePatternRect::ToUG(void)
 			}
 		}
 	}
-	else {
+	else*/// {
 	//	cout<<_coldir[0]<<_coldir[1]<<_coldir[2]<<_rowdir[0]<<_rowdir[1]<<_rowdir[2];
 
 	_rowspacing = _rowspacing *(_rowdir[0]+_rowdir[1]+_rowdir[2]);
@@ -92,10 +92,10 @@ void FeatureSOLIDCreatePatternRect::ToUG(void)
 
 		UF_CALL(UF_MODL_put_list_item(feat_list,feature));
 
-		int r=(UF_MODL_create_linear_iset(0,_rownumberc,"-160",_colnumberc,"-160", feat_list,&_ugTag));
+		int r=(UF_MODL_create_linear_iset(0,_colnumberc,_colspacingc,_rownumberc,_rowspacingc, feat_list,&_ugTag));
 
 	
-	}
+	//}
 	
 
 

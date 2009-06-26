@@ -23,7 +23,7 @@ Part::Part(string fileName)
 	// Set TransCAD Document Ptr
 	TransCAD::IDocumentsPtr spDocuments = g_spApplication->Documents;
 	//under constructionn : _spDocument = spDocuments->Open(CString(fileName.c_str()));
-	
+
 	_spPart = _spDocument->Part;		// Set TransCAD Part Ptr
 	_spFeatures = _spPart->Features;	// Set TransCAD Features Ptr
 	_strPartName = _spDocument->FullName;	// Set Part file name
@@ -198,7 +198,10 @@ void Part::ToUG()
 	CreateUGPart();		// create UG Part File & set _pTag
 
 	//-------  Loop to get features information into UG  --------//
-	for(int i = 0; (unsigned int)i < GetSize(); ++i)	GetFeature(i)->ToUG();
+	for(int i = 0; (unsigned int)i < GetSize(); ++i)	{
+		if(strcmp((GetFeature(i)->GetFeatureName()).c_str(),"Protrusion1")==0) index = 0;else index=1;
+		GetFeature(i)->ToUG();
+	}
 	//for(int i = 0; (unsigned int)i < 5; ++i)	GetFeature(i)->ToUG();
 
 	SaveUGPart();		// save UG Part File

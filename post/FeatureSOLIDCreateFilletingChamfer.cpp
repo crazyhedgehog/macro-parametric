@@ -72,7 +72,8 @@ void FeatureSOLIDCreateFilletingChamfer::ToUG(void)
 	UF_MODL_ask_list_count(all_edge_list, &edge_count);
 
 	printf("\n%d: edge_count\n",edge_count);
-
+	cout<<endl<<"selected edge"<<" "<<_point1[0]<<" "<<_point1[1]<<" "<<_point1[2]<<endl;
+	cout<<endl<<"             "<<" "<<_point2[0]<<" "<<_point2[1]<<" "<<_point2[2]<<endl<<endl;
 	for(int index = 0; index < edge_count; index++)
 	{
 		double p1[3];
@@ -113,7 +114,7 @@ void FeatureSOLIDCreateFilletingChamfer::ToUG(void)
 
 			cout<<endl<<endl<<" "<<p1[0]<<" "<<p1[1]<<" "<<p1[2]<<endl<<endl;
 
-			if (pow(pow(p1[0]-_point1[0],2)+pow(p1[1]-_point1[1],2)+pow(p1[2]-_point1[2],2),.5)<=0.00000001)
+			if (pow(pow(p1[0]-_point1[0],2)+pow(p1[1]-_point1[1],2)+pow(p1[2]-_point1[2],2),.5)<=0.001)
 			{
 				printf("yes\n");
 				edgeNo=index;

@@ -53,7 +53,7 @@ int main ( int argc, char *argv[] )
 		WaitGetEnter();
 		
 		// delete Part class
-		delete pPart;	
+		//delete pPart;	
 
 		// Clear TransCAD
 		g_spApplication.Release();

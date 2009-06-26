@@ -39,7 +39,7 @@ public:
 	TransCAD::IPartDocumentPtr	_spDocument;
 	TransCAD::IPartPtr			_spPart;
 	TransCAD::IFeaturesPtr		_spFeatures;
-
+	int index;
 private:
 	tag_t	_pTag;
 	string	_strPartName;	// TransCAD Part full path name
