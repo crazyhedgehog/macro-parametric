@@ -178,7 +178,7 @@ void FSketch::ToTransCAD()
 															xdir.X(), xdir.Y(), xdir.Z(), ydir.X(), ydir.Y(), ydir.Z());
 
 	// Add new StdSketchFeature to TransCAD
-	TransCAD::IStdSketchFeaturePtr spSketch = GetPart()->_spFeatures->AddNewSketchFeature(GetName().c_str(), spSelectedPlane);
+ 	TransCAD::IStdSketchFeaturePtr spSketch = GetPart()->_spFeatures->AddNewSketchFeature(GetName().c_str(), spSelectedPlane);
 
 	// Set Coordinate system of Sketch
 	spSketch->SetCoordinateSystem(origin.X(), origin.Y(), origin.Z(), xdir.X(), xdir.Y(), xdir.Z(), ydir.X(), ydir.Y(), ydir.Z());

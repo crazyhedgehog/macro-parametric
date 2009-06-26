@@ -126,7 +126,8 @@ enum FType {
 		SOLID_Create_Protrusion_Extrude,
 		SOLID_Create_Protrusion_Revolve,
 		SOLID_Create_Protrusion_Sweep,
-		SOLID_Operate_Filleting_Fillet_Constant
+		SOLID_Operate_Filleting_Fillet_Constant,
+		SOLID_Operate_Pattern_Rectangular
 };
 
 

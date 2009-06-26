@@ -7,6 +7,7 @@
 #include <uf_sket.h>
 #include <uf_obj.h>
 #include <uf_object_types.h>
+#include <uf_assem.h>
 
 #include "UGPre.h"
 #include "Part.h"
@@ -21,11 +22,80 @@ int FSOLIDOperatePatternRectangular::_patternCnt = 0;
 FSOLIDOperatePatternRectangular::FSOLIDOperatePatternRectangular(Part * part, tag_t fTag) :
 	Feature(part, fTag)
 {
+	_fType=SOLID_Operate_Pattern_Rectangular;
 }
 
 void FSOLIDOperatePatternRectangular::GetUGInfo()
 {
+	tag_t fTag = GetFTag();
 	
+	char* numx;
+	char* numy;
+	char* distx;
+	char* disty;
+	char* featname;
+
+	uf_list_p_t features;
+	
+	UF_MODL_create_list(&features);
+	UF_MODL_ask_linear_iset_parms(fTag,1,&numx,&numy,&distx,&disty); 
+
+	UF_MODL_ask_instance (fTag,&features);
+	UF_MODL_ask_feat_name(features[0].eid,&featname);
+
+	tag_t temptag;
+	UF_MODL_ask_instance_iset (features[0].eid,&temptag);
+	//temptag = UF_ASSEM_ask_child_of_instance(features[0].eid); 
+
+	//UF_ASSEM_ask_parent_component (		features[0].eid, 		&temptag );
+	cout<<numx;
+	
+	//temptag = features[0].eid;
+	tag_t *p;
+	tag_t *c;
+	int nump,numc;
+	UF_CALL(UF_MODL_ask_feat_relatives (features->eid,&nump,&p,&numc,&c));
+	tag_t eachTag = NULL_TAG;
+	tag_t fSketTag = NULL_TAG;
+	
+
+	for(int i =0; i<GetPart()->GetFeatureTagSize();i++)
+	{	eachTag=GetPart()->GetFeatureTag(i);
+		
+		UF_CALL(UF_MODL_ask_sketch_of_sweep(eachTag, &fSketTag));
+	
+		if(*p == fSketTag) {
+			cout<< "GoTYA~~~~~~~~~~~~";
+			break;}
+		
+	}
+	_targetFeature = GetPart()->GetFeatureByTag(eachTag);
+	//_targetName = "proExtrude2";
+	
+	_targetName = _targetFeature->GetName();
+	//_targetFeature->SetFType(ExplicitModelObject);
+// 	UF_OBJ_cycle_objs_in_part(GetPart()->GetPartTag(), UF_feature_type, &eachTag);
+// 	while(eachTag != NULL_TAG)
+// 	{
+// 		UF_CALL(UF_MODL_ask_sketch_of_sweep(fTag, &fSketTag));
+// 		//_pProFSket = (FSketch *)(GetPart()->GetFeatureByTag(fSketTag) );
+// 		
+// 		// get a feature tag
+// 		UF_OBJ_cycle_objs_in_part(GetPart()->GetPartTag(), UF_feature_type, &eachTag);
+// 	}	
+	
+
+	
+	
+// 	tag_t *p;
+// 	char** n;
+// 	int nr;
+//  	UF_MODL_ask_references_of_features (&temptag,1,&p,&n,&nr);
+//  		
+
+// 	Feature * pFeature = new FSOLIDCreateProtrusionExtrude(GetPart(),features[0].eid);
+// 	pFeature->GetUGInfo();
+// 	pFeature->ToTransCAD();
 	/*
 	//---------	 get the blended edge geometry information  ---------//
 
@@ -117,5 +187,35 @@ void FSOLIDOperatePatternRectangular::GetUGInfo()
 
 void FSOLIDOperatePatternRectangular::ToTransCAD()
 {
+ 
+// 	bstr_t proSketName( GetProSket()->GetName().c_str() );
+// 	TransCAD::IReferencePtr spProSket = GetPart()->_spPart->SelectObjectByName(proSketName);
+// 
+// 	// Create a protrusion revolve feature with the sketch
+// 	GetPart()->_spFeatures->AddNewSolidProtrusionRevolveFeature(GetName().c_str(),spProSket,
+// 		_dStaAng, TransCAD::StdRevolveEndType_Blind,
+// 		_dEndAng, TransCAD::StdRevolveEndType_Blind, false);
+//GetPart()->_spPart->SelectObjectByName()
+	
+	bstr_t name(_targetName.c_str());
+	
+	TransCAD::IReferencePtr spTarget;
+
+	//cout << GetPart()->_spPart->SelectObjectByName(name)->GetType();
+	
+	
+	spTarget = GetPart()->_spPart->SelectFeatureByName(name);
+	
+	
+	//TransCAD::IFeaturePtr dd = GetPart()->_spFeatures->GetItem(7);
+	
+	//bstr_t ddd = dd->GetName();
+
+	GetPart()->_spFeatures->AddNewSolidOperatePatternRectangularFeature(
+		GetName().c_str()
+		,spTarget
+		,2.5,0,-1,0,3
+		,1,1,0,0,1
+		);
 
 }

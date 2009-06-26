@@ -28,7 +28,9 @@ private:
 	static int _patternCnt;		// Pattern Instance Count
 
 protected:
-	string			_strPatternObj;	// Object name to be patterned
+	Feature *		_targetFeature;
+
+	string			_targetName;// Object name to be patterned
 	Direct3D		_dirCol;
 	double			_dColSpace;
 	int				_nCol;

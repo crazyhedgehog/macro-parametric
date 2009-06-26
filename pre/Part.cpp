@@ -18,6 +18,7 @@
 #include "FSOLIDCreateProtrusionSweep.h"
 #include "FSOLIDCreateProtrusionRevolve.h"
 #include "FSOLIDCreateCutRevolve.h"
+#include "FSOLIDOperatePatternRectangular.h"
 
 
 using namespace std;
@@ -79,7 +80,7 @@ Feature * Part::GetFeatureByTag(tag_t fTag) const
 	return 0;
 }
 
-Feature * Part::CreateFeature(tag_t fTag)
+Feature * Part::CreateFeature(tag_t fTag,int stageIndex)
 {
 	bool bNoComment = 0;
 
@@ -91,107 +92,126 @@ Feature * Part::CreateFeature(tag_t fTag)
 	
 	// DEBUG
 	cout << (unsigned int)(GetFeaturesSize()) << " [" << fTag << "] " << featureType ;
-	cout << " --> ";
-
+	cout << " --> " ;
+	cout << featureType;
 	// create a feature
 	Feature * pFeature = 0;
-
-	//==========  ABSOLUTE_DATUM_PLANE : <SELECT_Reference_Plane>  ==========//
-	if(!strcmp(featureType, "ABSOLUTE_DATUM_PLANE"))
+	if(stageIndex==1)
 	{
-		pFeature = new FDatumPlane(this,fTag);
-		cout << "FDatumPlane Constructed" << endl;
-	}
-
-	//==========  ABSOLUTE_DATUM_AXIS : No feature  ==========//
-	if(!strcmp(featureType, "ABSOLUTE_DATUM_AXIS"))
-	{
-		cout << "*** Need not translate *** " << endl;
-		bNoComment = 1;;
-	}
-
-	//==========  "SKETCH" : SketchFeature  ==========//
-	else if(!strcmp(featureType, "SKETCH"))
-	{
-		pFeature = new FSketch(this,fTag);
-		cout << "FSketch Constructed" << endl;
-	}
-
-	//==========  "SWP104" : Extrude, Sweep, Revolve  ==========//
-	else if(!strcmp(featureType, "SWP104"))			
-	{
-		UF_FEATURE_SIGN sign;						// UF_NULLSIGN = 0, create new target solid
-		UF_MODL_ask_feature_sign(fTag, &sign);		// UF_POSITIVE = 1, add to target solid
-													// UF_NEGATIVE = 2, subtract from target solid
-		
-		//==========  Extrude  ==========//
-		if(!_strnicmp(featureName, "E", 1))
+		//==========  ABSOLUTE_DATUM_PLANE : <SELECT_Reference_Plane>  ==========//
+		if(!strcmp(featureType, "ABSOLUTE_DATUM_PLANE")||!strcmp(featureType, "DATUM_PLANE"))
 		{
-			if (sign < 2)	{		// Protrusion
-				pFeature = new FSOLIDCreateProtrusionExtrude(this,fTag);
-				cout << "SOLIDCreateProtrusionExtrude Constructed" << endl;
+			pFeature = new FDatumPlane(this,fTag);
+			cout << "FDatumPlane Constructed" << endl;
+		}
+
+		//==========  ABSOLUTE_DATUM_AXIS : No feature  ==========//
+		if(!strcmp(featureType, "ABSOLUTE_DATUM_AXIS"))
+		{
+			cout << "*** Need not translate *** " << endl;
+			bNoComment = 1;;
+		}
+
+		//==========  "SKETCH" : SketchFeature  ==========//
+		else if(!strcmp(featureType, "SKETCH"))
+		{
+			pFeature = new FSketch(this,fTag);
+			cout << "FSketch Constructed" << endl;
+		}
+
+		//==========  "SWP104" : Extrude, Sweep, Revolve  ==========//
+		else if(!strcmp(featureType, "SWP104"))			
+		{
+			UF_FEATURE_SIGN sign;						// UF_NULLSIGN = 0, create new target solid
+			UF_MODL_ask_feature_sign(fTag, &sign);		// UF_POSITIVE = 1, add to target solid
+														// UF_NEGATIVE = 2, subtract from target solid
+			
+			//==========  Extrude  ==========//
+			if(!_strnicmp(featureName, "E", 1))
+			{
+				if (sign < 2)	{		// Protrusion
+					pFeature = new FSOLIDCreateProtrusionExtrude(this,fTag);
+					cout << "SOLIDCreateProtrusionExtrude Constructed" << endl;
+				}
+				
+				else if (sign == 2)	{	// Cut
+					pFeature = new FSOLIDCreateCutExtrude(this,fTag);
+					cout << "SOLIDCreateCutExtrude Constructed" << endl;
+				}
+			}
+
+			//==========  SWEEP  ==========//
+			else if(!_strnicmp(featureName, "S", 1))
+			{
+				if (sign < 2) {			// Protrusion
+					pFeature = new FSOLIDCreateProtrusionSweep(this,fTag);
+					cout << "SOLIDCreateProtrusionSweep Constructed" << endl;
+					bNoComment = 1;
+				}
+				else if (sign == 2)	{	// Cut
+					//pFeature = new FSOLIDCreateCutSweep(this,fTag);
+					cout << "SOLIDCreateCutSweep under construction" << endl;
+					bNoComment = 1;
+				}
 			}
 			
-			else if (sign == 2)	{	// Cut
-				pFeature = new FSOLIDCreateCutExtrude(this,fTag);
-				cout << "SOLIDCreateCutExtrude Constructed" << endl;
+			//==========  Revolve  ==========//
+			else if(!_strnicmp(featureName, "R", 1)) 
+			{
+				if((sign == 1) || (sign == 0)) {	// Protrusion
+					pFeature = new FSOLIDCreateProtrusionRevolve(this,fTag);
+					cout << "SOLIDCreateProtrusionRevolve Constructed" << endl;
+				}
+				else if(sign == 2)	{				// Cut
+					pFeature = new FSOLIDCreateCutRevolve(this,fTag);
+					cout << "SOLIDCreateCutRevolve Constructed" << endl;
+				}
 			}
-		}
 
-		//==========  SWEEP  ==========//
-		else if(!_strnicmp(featureName, "S", 1))
-		{
-			if (sign < 2) {			// Protrusion
-				pFeature = new FSOLIDCreateProtrusionSweep(this,fTag);
-				cout << "SOLIDCreateProtrusionSweep Constructed" << endl;
+			//==========  Unknown SWEEP ==========//
+			else
+			{
+				cout << "Unknown SWEEP104 Type, featureName = " << featureName << endl;
 				bNoComment = 1;
 			}
-			else if (sign == 2)	{	// Cut
-				//pFeature = new FSOLIDCreateCutSweep(this,fTag);
-				cout << "SOLIDCreateCutSweep under construction" << endl;
-				bNoComment = 1;
-			}
-		}
-		
-		//==========  Revolve  ==========//
-		else if(!_strnicmp(featureName, "R", 1)) 
-		{
-			if((sign == 1) || (sign == 0)) {	// Protrusion
-				pFeature = new FSOLIDCreateProtrusionRevolve(this,fTag);
-				cout << "SOLIDCreateProtrusionRevolve Constructed" << endl;
-			}
-			else if(sign == 2)	{				// Cut
-				pFeature = new FSOLIDCreateCutRevolve(this,fTag);
-				cout << "SOLIDCreateCutRevolve Constructed" << endl;
-			}
+
 		}
 
-		//==========  Unknown SWEEP ==========//
-		else
+		//----------  BLEND : <SOLID_Operate_Filleting_Fillet_Constant>  ----------//
+		else if(!strcmp(featureType, "BLEND"))
 		{
-			cout << "Unknown SWEEP104 Type, featureName = " << featureName << endl;
-			bNoComment = 1;
+			cout << "SOLIDOperateFilletingFilletConstant constructed" << endl;
+			pFeature = new FSOLIDOperateFilletingFilletConstant(this, fTag);
 		}
+		if (pFeature)
+			_featureList.push_back(pFeature);	// put into _featureList
+		else if (!bNoComment)
+			cerr << "*** Not Supported Yet!!! ***" << endl;
 
+		// delete memory
+		UF_free(featureType);	// UF_MODL_ask_feat_type(fTag, &featureType);
+		UF_free(featureName);	// UF_MODL_ask_feat_name(fTag, &featureName);
+
+		return pFeature;
 	}
-
-	//----------  BLEND : <SOLID_Operate_Filleting_Fillet_Constant>  ----------//
-	else if(!strcmp(featureType, "BLEND"))
+	if(stageIndex==2)
 	{
-		cout << "SOLIDOperateFilletingFilletConstant constructed" << endl;
-		pFeature = new FSOLIDOperateFilletingFilletConstant(this, fTag);
+		if(!strcmp(featureType, "LINEAR_ISET"))
+		{
+			cout << "PATTERNRECT constructed" << endl;
+			pFeature = new FSOLIDOperatePatternRectangular(this, fTag);
+		}
+		if (pFeature)
+			_featureList.push_back(pFeature);	// put into _featureList
+		else if (!bNoComment)
+			cerr << "*** Not Supported Yet!!! ***" << endl;
+
+		// delete memory
+		UF_free(featureType);	// UF_MODL_ask_feat_type(fTag, &featureType);
+		UF_free(featureName);	// UF_MODL_ask_feat_name(fTag, &featureName);
+
+		return pFeature;
 	}
-
-	if (pFeature)
-		_featureList.push_back(pFeature);	// put into _featureList
-	else if (!bNoComment)
-		cerr << "*** Not Supported Yet!!! ***" << endl;
-
-	// delete memory
-	UF_free(featureType);	// UF_MODL_ask_feat_type(fTag, &featureType);
-	UF_free(featureName);	// UF_MODL_ask_feat_name(fTag, &featureName);
-
-	return pFeature;
 }
 
 
@@ -202,17 +222,34 @@ void Part::GetUGInfo()
 	
 	//-------  Loop to create features list in a part tag --------//
 	
-	// get a feature tag
-	UF_OBJ_cycle_objs_in_part(GetPartTag(), UF_feature_type, &fTag);
-	
-	while(fTag != NULL_TAG)
-	{
-		pFeature = CreateFeature(fTag);	// Create a Feature Class
-
-		// get a feature tag
+	do{
 		UF_OBJ_cycle_objs_in_part(GetPartTag(), UF_feature_type, &fTag);
-	}	
-	
+		_tagList.push_back(fTag);
+	}
+	while(fTag != NULL_TAG);
+
+
+	// get a feature tag
+// 	UF_OBJ_cycle_objs_in_part(GetPartTag(), UF_feature_type, &fTag);
+// 	_tagList.push_back(fTag);
+// 	while(fTag != NULL_TAG)
+// 	{
+// 		pFeature = CreateFeature(fTag);	// Create a Feature Class
+// 
+// 		// get a feature tag
+// 		UF_OBJ_cycle_objs_in_part(GetPartTag(), UF_feature_type, &fTag);
+// 		_tagList.push_back(fTag);
+// 	}	
+	for (int i=0;i<_tagList.size();i++)
+	{
+		if(_tagList[i])
+			pFeature = CreateFeature(_tagList[i],1);	// Create a Feature Class
+	}
+	for (int i=0;i<_tagList.size();i++)
+	{
+		if(_tagList[i])
+			pFeature = CreateFeature(_tagList[i],2);	// Create a Feature Class
+	}
 	cout << endl << "Press any key to Translate...";
 	WaitGetEnter();
 

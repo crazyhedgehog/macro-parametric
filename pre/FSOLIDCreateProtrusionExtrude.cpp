@@ -4,7 +4,7 @@
 
 #include <uf_sket.h>
 #include <uf_modl.h>
-
+#include <uf_assem.h>
 #include "Part.h"
 #include "FSketch.h"
 
@@ -47,11 +47,15 @@ void FSOLIDCreateProtrusionExtrude::GetUGInfo()
 
 	// Get FeatureProfileSketch Class Ptr
 	tag_t	fSketTag;
+	
 	UF_CALL(UF_MODL_ask_sketch_of_sweep(fTag, &fSketTag));
+
+
 	_pProFSket = (FSketch *)(GetPart()->GetFeatureByTag(fSketTag) );
 	
 	_dStart = atof(limits[0]);	// set _dStart
 	_dEnd = atof(limits[1]);	// set _dEnd
+
 	_bFlip = false;					// set _ flip
 
 	//DEBUG
